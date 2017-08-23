@@ -23,11 +23,15 @@ p{
 .inputbox{
 	padding-left: 45%;
 }
+.back{
+	padding-left: 25%;
+	text-align: center;
+}
 
 i{
-	margin: auto;
+	padding-left: 42%;
 	text-align: center;
-	color:black;
+	color:blue;
 }
 
 a{
