@@ -2,34 +2,34 @@
 <html lang="en">
 	<head>
 		<meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-    <meta name="description" content="Skeleton application demoing Heroku and Flask integration.">
-    <meta name="author" content="@gotoariel">
-    <!-- <link rel="icon" href="favicon.ico"> -->
-
-		<title>Wilkommen, bienvenue, and welcome to Heroku!</title>
-
-    <!-- Bootstrap core CSS -->
-		<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
-  </head>
+		<title>Stock Tracker</title>
+		<link rel=stylesheet type=text/css href='{{ url_for('static',filename='styles.css')}}'>
+	</head>
 	<body>
-		<div class="container">
-      <div class="row">
-        <div class="col-lg-12 text-left">
-          <h2>This is a new start!</h2>
-          <ul>
-            <li><a target="_blank" href="https://www.heroku.com/">Heroku</a></li>
-            <li><a target="_blank" href="http://flask.pocoo.org/">Flask</a></li>
-            <li><a target="_blank" href="http://jinja.pocoo.org/docs/2.9/">Jinja2</a></li>
-            <li><a target="_blank" href="http://getbootstrap.com/">Bootstrap</a></li>
-          </ul>
-        </div>
-      </div>
+		<div>
+  			<h1>Quandl Stock Tracker</h1>
+  			<div>
+    			<h2>Input a stock ticker (eg. AAPL) and the time span you want to check.</h2>
+    			<form id='input' method='post' action='index'>	
+	  				<p>Ticker symbol: </p>
+	  				<p class="inputbox"><input type='text' name='ticker' /></p>
+	  				<p>Start year: </p>
+	  				<p class="inputbox"><input type='text' name='year' /></p>	  	
+	  				<p>Start month (format for Jan. to Dec. as 01-12): </p>
+	  				<p class="inputbox"><input type='text' name='month' /></p>
+	  				<p>Time span (year):</p>
+	  				<p class="inputbox"><input type='text' name='timespan' /></p>	  			
+	  				<p class="inputbox">
+	  					<input type="checkbox" name='feat1' value='Open'>Opening price<br>
+							<input type="checkbox" name='feat2' value='Close'>Closing price<br>
+							<input type="checkbox" name='feat3' value='Range'>Range (High/Low)<br>
+	  				</p>
+	  				<p class="inputbox"><input type="submit" value="Submit"></p>  		
+					</form>
+  			</div>
+  			<div>
+  				<p>See <a href="https://www.quandl.com/data/WIKI">Quandl</a> for database description</p>
+  			</div>
 		</div>
-    <!-- Bootstrap core JavaScript
-    ================================================== -->
-    <!-- Placed at the end of the document so the pages load faster -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.2.1/jquery.js"></script>
-		<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
 	</body>
 </html>

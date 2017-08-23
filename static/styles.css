@@ -1,0 +1,41 @@
+h1 {
+	color: black;
+	text-align: center;
+	width:50%;
+	margin:auto;
+	border-bottom: 1px solid black;
+}
+
+h2 {
+	color: black;
+	text-align: center;
+	width:30%;
+	margin:auto;
+	font-family: sans-serif;
+}
+
+p{
+	margin: auto;
+	text-align: left;
+	padding-left: 35%;
+}
+
+.inputbox{
+	padding-left: 45%;
+}
+
+i{
+	margin: auto;
+	text-align: center;
+	color:black;
+}
+
+a{
+	color:black;
+	font-family: cursive;
+	text-decoration: none;
+}
+
+a:hover{
+	color:blue;
+}
