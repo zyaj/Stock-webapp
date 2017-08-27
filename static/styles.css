@@ -43,3 +43,23 @@ a{
 a:hover{
 	color:blue;
 }
+
+.line {
+  fill: none;
+  stroke: steelblue;
+  stroke-width: 1.5px;
+}
+.line-point{
+  font-size:10px;
+  font-family:cursive;
+  fill-opacity:0.0;
+}
+svg {
+  display: block
+  margin: auto;
+}
+.zoom {
+  cursor: move;
+  fill: none;
+  pointer-events: all;
+}

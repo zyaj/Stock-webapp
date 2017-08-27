@@ -3,28 +3,8 @@
   <head>
     <meta charset="utf-8">
     <title>Quandl Graph</title>
+    <!--Style file-->
     <link rel="stylesheet" type="text/css" href="{{ url_for('static',filename='styles.css')}}">
-    <style>
-      .line {
-        fill: none;
-        stroke: steelblue;
-        stroke-width: 1.5px;
-      }
-      .line-point{
-        font-size:10px;
-        font-family:cursive;
-        fill-opacity:0.0;
-      }
-      svg {
-        display: block
-        margin: auto;
-      }
-      .zoom {
-        cursor: move;
-        fill: none;
-        pointer-events: all;
-      }
-    </style>
   </head>
   <body>
     <div align="center">
@@ -34,21 +14,30 @@
       <div align="center"> 
       <script src="//d3js.org/d3.v4.min.js"></script>
       <script>
+        
+        // define the size of plot domain
         var svgWidth = 1000;
         var svgHeight = 500;
-
+        
+        // define the margin of the plot within the plot domain
         var margin = {top: 30, right: 40, bottom: 50, left: 60};
-
+        
+        // calculate the plot width and depth for the domain
         var width = svgWidth - margin.left - margin.right;
         var height = svgHeight - margin.top - margin.bottom;
+
+        // define the time style for the read-in data
         var parseTime = d3.timeParse("%Y-%m-%d");
 
+        // generate a plot space 
+        // here select the 
         var svg = d3.select("div")
             .append('svg')
-            .attr('width', svgWidth)
-            .attr('height', svgHeight)
+              .attr('width', svgWidth)
+              .attr('height', svgHeight)
 
         // create scale objects
+        // z here represent the color scale
         var x = d3.scaleTime().range([0, width]),
             y = d3.scaleLinear().range([height, 0]),
             z = d3.scaleOrdinal(d3.schemeCategory10);
@@ -60,7 +49,12 @@
             .y(function(d) { return y(d.temperature); });
         
         // load data from a tsv
-        d3.tsv("/data", type, function(error, data) {
+        // the data is return to /data page in app.py by python flask
+        // just read through from /data directly
+        // for local file {{ url_for('static',filename='styles.css')}} format is needed.
+        // for online file, a complete url is required
+        filedir="/data"
+        d3.tsv(filedir, type, function(error, data) {
           if (error) throw error;
           
           // "type" function here will parse the date
@@ -77,99 +71,44 @@
           });
         
           // get the range of x 
-          x.domain(d3.extent(data, function(d) { return d.date; }));
+          x.domain(d3.extent(data, 
+            function(d) {
+              return d.date; 
+            }));
         
           // get the range of y
           y.domain([
-            d3.min(cities, function(c) { return d3.min(c.values, function(d) { return d.temperature; }); }),
-            d3.max(cities, function(c) { return d3.max(c.values, function(d) { return d.temperature; }); })
+            d3.min(cities, 
+              function(c) 
+              { 
+                return d3.min(c.values, 
+                  function(d) 
+                  { 
+                    return d.temperature; 
+                  }); 
+              }),
+            d3.max(cities, 
+              function(c) 
+              { 
+                return d3.max(c.values, 
+                  function(d) 
+                  { 
+                    return d.temperature; 
+                  }); 
+              })
           ]);
 
           // create axis objects
           var xAxis = d3.axisBottom(x);
           var yAxis = d3.axisLeft(y);
   
-          // Zoom Function
+          // data preparation finished!
+
+          // for plot
+
+          // define Zoom Function
           var zoom = d3.zoom()
               .on("zoom", zoomFunction);
-          
-          // Inner Drawing Space
-          var innerSpace = svg.append("g")
-              .attr("class", "inner_space")
-              .attr("transform", "translate(" + margin.left + "," +   margin.top        + ")")
-              .call(zoom);
-          
-          // Draw Axis
-          var gX = innerSpace.append("g")
-              .attr("class", "axis axis--x")
-              .attr("transform", "translate(0," + height + ")")
-              .call(xAxis);
-  
-          var gY = innerSpace.append("g")
-              .attr("class", "axis axis--y")
-              .call(yAxis);
-          
-          // append zoom area
-          var view = innerSpace.append("rect")
-            .attr("class", "zoom")
-            .attr("width", width)
-            .attr("height", height)
-            .call(zoom)
-
-          var city = innerSpace.selectAll(".city")
-            .data(cities)
-            .enter().append("g")
-              .attr("class", "city");
-          // draw the line for each point
-          var lines=city.append("path")
-              .attr("class", "line")
-              .attr("d", function(d) { return line(d.values); })
-              .style("stroke", function(d) { return z(d.id); });
-          
-          var point = city.append("g")
-          .attr("class", "line-point");          
-          
-          // add data and define the line-point
-          circles=point.selectAll('circle')
-            .data(function(d){ return d.values})
-            .enter()
-            .append('circle')
-            .attr("cx", function(d) { return x(d.date) })
-            .attr("cy", function(d) { return y(d.temperature) })
-            .attr("r", 1.5)
-            .style("fill", "white")
-            .style("stroke", function(d) { return z(this.parentNode.__data__.id); })
-            /*.on("mouseover",function(d){
-              d3.select(this)
-              .style("fill","red")
-              .style("fill-opacity",1.0 );
-            })
-            .on("mouseout",function(d){
-              d3.select(this)
-              .style("fill","white")
-              .style("fill-opacity",0.0);
-            })*/
-          
-          // add data for each point
-          point_text=point.selectAll('text')
-            .data(function(d){ return d.values})
-            .enter()
-            .append('text')
-            .attr("x", function(d) { return x(d.date) })
-            .attr("y", function(d) { return y(d.temperature) })
-            .text(function(d) {return d.temperature})
-            .on("mouseover",function(d){
-              d3.select(this)
-              .attr("x", function(d) { return x(d.date)+7 })
-              .attr("y", function(d) { return y(d.temperature)+7 })
-              .style("fill-opacity",1.0);
-            })
-            .on("mouseout",function(d){
-            d3.select(this)
-            .attr("x", function(d) { return x(d.date)})
-            .attr("y", function(d) { return y(d.temperature)})
-            .style("fill-opacity",0.0);
-            })        
           
           function zoomFunction(){
             // create new scale ojects based on event
@@ -180,10 +119,201 @@
             // update axes
             gX.call(xAxis.scale(new_xScale));
             gY.call(yAxis.scale(new_yScale));
+            // update each line in the plot
             lines.attr("transform", d3.event.transform)
+            // update the line point in the plot
             circles.attr("transform", d3.event.transform)
+            // update the text size in the plot
             point_text.attr("transform", d3.event.transform)
           };
+
+          // append Inner Drawing Space
+          // this makes sure the zoom-pan function works for the plot component
+          // like line or circle
+          var innerSpace = svg
+              .append("g")
+                .attr("class", "inner_space")
+                .attr("transform", "translate("+margin.left+","+margin.top+ ")")
+                .call(zoom);
+          
+          // Draw Axis
+          var gX = innerSpace
+              .append("g")
+                .attr("class", "axis axis--x")
+                .attr("transform", "translate(0," + height + ")")
+                .call(xAxis)
+
+              gX.append("text")
+                .attr("x", width)
+                .attr("y", -3)
+                .attr("dx", "1em")
+                .attr("fill", "#000")
+                .text("Date")
+                .style("font-size","12px")
+                .style("font-family","cursive");  
+  
+          var gY = innerSpace
+              .append("g")
+                .attr("class", "axis axis--y")
+                .call(yAxis)
+              
+              gY.append("text")
+                .attr("transform", "rotate(0)")
+                .attr("y", -15)
+                .attr("dy", "0.71em")
+                .attr("fill", "#000")
+                .text("Price, $")
+                .style("font-size","12px")
+                .style("font-family","cursive");  
+          // append zoom area
+          // this enable the zoom function for the whole domain not only the point of the plot
+          var view = innerSpace
+            .append("rect")
+              .attr("class", "zoom")
+              .attr("width", width)
+              .attr("height", height)
+              .call(zoom)
+
+          // append project for each point of the data
+          var city = innerSpace.selectAll(".city")
+            .data(cities)
+            .enter()
+            .append("g")
+              .attr("class", "city");
+
+          // draw the line for each point
+          var lines=city
+              .append("path")
+                .attr("class", "line")
+                .attr("d", 
+                  function(d) 
+                  { 
+                    return line(d.values); 
+                  })
+                .style("stroke", 
+                  function(d) 
+                  { 
+                    return z(d.id); 
+                  });
+          
+          // draw a point for each data point on the line
+          var point = city
+              .append("g")
+                .attr("class", "line-point");          
+          
+          // add data and define the line-point
+          circles=point.selectAll('circle')
+            .data(
+              function(d){ 
+              return d.values
+              })
+            .enter()
+            .append('circle')
+              .attr("cx", 
+                function(d) 
+                { 
+                  return x(d.date) 
+                })
+              .attr("cy", 
+                function(d) 
+                { 
+                  return y(d.temperature) 
+                })
+              .attr("r", 1.5)
+              .style("fill", "white")
+              // this makes sure the color of the circle is consistent with the line
+              .style("stroke", 
+                function(d) 
+                { 
+                  return z(this.parentNode.__data__.id); 
+                }) 
+              /*.on("mouseover",function(d){
+                d3.select(this)
+                .style("fill","red")
+                .style("fill-opacity",1.0 );
+              })
+              .on("mouseout",function(d){
+                d3.select(this)
+                .style("fill","white")
+                .style("fill-opacity",0.0);
+              })*/
+          
+          // add data for each point
+          point_text=point.selectAll('text')
+            .data(
+              function(d){ 
+                return d.values
+              })
+            .enter()
+            .append('text')
+              .attr("x", 
+                function(d) 
+                { 
+                  return x(d.date) 
+                })
+              .attr("y", 
+                function(d) 
+                { 
+                  return y(d.temperature) 
+                })
+              .text(
+                function(d) 
+                {
+                  return d.temperature
+                })
+              .on("mouseover",
+                function(d){
+                  d3.select(this)
+                    .attr("x", function(d) { return x(d.date)+7 })
+                    .attr("y", function(d) { return y(d.temperature)+7 })
+                    .style("fill-opacity",1.0);
+                })
+              .on("mouseout",
+                function(d){
+                  d3.select(this)
+                    .attr("x", function(d) { return x(d.date)})
+                    .attr("y", function(d) { return y(d.temperature)})
+                    .style("fill-opacity",0.0);
+                  }) 
+
+          // setup legend
+          // define legend dimension
+          var legend = city.append("g")
+            .attr("class", "legend")
+            .attr("height", 100)
+            .attr("width", 100)
+            .attr('transform', 'translate(-20,50)')    
+          
+          // draw legend  
+          legend.selectAll('rect')
+            .data(cities)
+            .enter()
+            .append("rect")
+            .attr("x", width-113)
+            .attr("y", 
+              function(d, i)
+              { 
+                return i*20+200;
+              })
+            .attr("width", 10)
+            .attr("height", 10)
+            .style("fill", 
+              function(d) 
+              { 
+                return z(d.id);
+              })
+          // give text for each legend
+          legend.selectAll('text')
+            .data(cities)
+            .enter()
+            .append("text")
+            .attr("x", width-100)
+            .attr("y", 
+              function(d, i)
+              { 
+                return i *  20 + 9+200;
+              })
+            .text(function(d) {return d.id;});         
         });        
         function type(d, _, columns) {
           d.date = parseTime(d.date);
