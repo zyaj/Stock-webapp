@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <title>Quandl Graph</title>
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static',filename='styles.css')}}">
+    <style>
+      .line {
+        fill: none;
+        stroke: steelblue;
+        stroke-width: 1.5px;
+      }
+      .line-point{
+        font-size:10px;
+        font-family:cursive;
+        fill-opacity:0.0;
+      }
+      svg {
+        display: block
+        margin: auto;
+      }
+    </style>
+  </head>
+  <body>
+    <div align="center">
+      <h1>Historic Quandl Data for {{ticker}}</h1>
+      <h2>{{ttag}}</h2>
+      <h2>{{yrtag}}</h2>
+      <div align="center">
+      <script src="//d3js.org/d3.v4.min.js"></script>
+      <script>
+        // define svg figure dimension
+        var width=960;
+        var height=500;
+        var g = d3.select("div")
+        .append("svg")
+        .attr("width", width)
+        .attr("height",height )
+        .call(d3.zoom().on("zoom", function () {
+                g.attr("transform", d3.event.transform)
+        }))
+        .append("g")
+
+        margin = {top: 50, right: 50, bottom: 50, left: 50},
+        width = width - margin.left - margin.right,
+        height = height - margin.top - margin.bottom,
+        g.attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+
+        var parseTime = d3.timeParse("%Y-%m-%d");
+        
+        // define scale function for x y z to fit the dimension
+        // here color is represented by z
+        var x = d3.scaleTime().range([0, width]),
+            y = d3.scaleLinear().range([height, 0]),
+            z = d3.scaleOrdinal(d3.schemeCategory10);
+        
+        // define the line type
+        var line = d3.line()
+            //.curve(d3.curveBasis) // transfer to curve line the line will be apart from the points
+            .x(function(d) { return x(d.date); })
+            .y(function(d) { return y(d.temperature); });
+        
+        // load data from a tsv
+        d3.tsv("/data", type, function(error, data) {
+          if (error) throw error;
+          
+          // "type" function here will parse the date
+          // the number of elements in cities equals the number of column
+          // for each column there are pairs of data id, date and data
+        
+          var cities = data.columns.slice(1).map(function(id) {
+            return {
+              id: id,
+              values: data.map(function(d) {
+                return {date: d.date, temperature: d[id]};
+              })
+            };
+          });
+        
+          // get the range of x 
+          x.domain(d3.extent(data, function(d) { return d.date; }));
+        
+          // get the range of y
+          y.domain([
+            d3.min(cities, function(c) { return d3.min(c.values, function(d) { return d.temperature; }); }),
+            d3.max(cities, function(c) { return d3.max(c.values, function(d) { return d.temperature; }); })
+          ]);
+        
+          // set up different color for each column
+          z.domain(cities.map(function(c) { return c.id; }));
+        
+          // draw x axis
+          g.append("g")
+              .attr("class", "axis axis--x")
+              .attr("transform", "translate(0," + height + ")")
+              .call(d3.axisBottom(x))
+            .append("text")
+              .attr("x", width)
+              .attr("y", 15)
+              .attr("dx", "1em")
+              .attr("fill", "#000")
+              .text("Date");    
+        
+          // draw y axis and give ylabel
+          g.append("g")
+              .attr("class", "axis axis--y")
+              .call(d3.axisLeft(y))
+            .append("text")
+              .attr("transform", "rotate(0)")
+              .attr("y", -10)
+              .attr("dy", "0.71em")
+              .attr("fill", "#000")
+              .text("Price, $");
+          
+          // give city class to store the data for each city
+          var city = g.selectAll(".city")
+            .data(cities)
+            .enter().append("g")
+              .attr("class", "city");
+        
+          // draw the line for each point
+          city.append("path")
+              .attr("class", "line")
+              .attr("d", function(d) { return line(d.values); })
+              .style("stroke", function(d) { return z(d.id); });
+        
+          // give text at the end of the value to act as legend
+          /*city.append("text")
+              .datum(function(d) { return {id: d.id, value: d.values[d.values.length - 1]}; })
+              .attr("transform", function(d) { return "translate(" + x(d.value.date) + "," + y(d.value.temperature) + ")"; })
+              .attr("x", 3)
+              .attr("dy", "0.35em")
+              .style("font", "10px sans-serif")
+              .text(function(d) { return d.id; });
+          */
+        
+          // add tooltip or line-circle for each data
+          var point = city.append("g")
+          .attr("class", "line-point");
+        
+          // add data and define the line-point
+          point.selectAll('circle')
+          .data(function(d){ return d.values})
+          .enter()
+          .append('circle')
+          .attr("cx", function(d) { return x(d.date) })
+          .attr("cy", function(d) { return y(d.temperature) })
+          .attr("r", 3)
+            .style("fill", "white")
+            .style("stroke", function(d) { return z(this.parentNode.__data__.id); })
+            /*.on("mouseover",function(d){
+              d3.select(this)
+              .style("fill","red")
+              .style("fill-opacity",1.0 );
+            })
+            .on("mouseout",function(d){
+              d3.select(this)
+              .style("fill","white")
+              .style("fill-opacity",0.0);
+            })*/
+          
+            // add data for each point
+            point.selectAll('text')
+            .data(function(d){ return d.values})
+            .enter()
+            .append('text')
+            .attr("x", function(d) { return x(d.date) })
+            .attr("y", function(d) { return y(d.temperature) })
+            .text(function(d) {return d.temperature})
+            .on("mouseover",function(d){
+              d3.select(this)
+              .attr("x", function(d) { return x(d.date)+7 })
+              .attr("y", function(d) { return y(d.temperature)+7 })
+              .style("fill-opacity",1.0);
+            })
+          .on("mouseout",function(d){
+            d3.select(this)
+            .attr("x", function(d) { return x(d.date)})
+            .attr("y", function(d) { return y(d.temperature)})
+            .style("fill-opacity",0.0);
+          })
+          // setup legend
+          // define legend dimension
+          var legend = city.append("g")
+            .attr("class", "legend")
+            .attr("height", 100)
+            .attr("width", 100)
+            .attr('transform', 'translate(-20,50)')    
+          
+          // draw legend  
+          legend.selectAll('rect')
+            .data(cities)
+            .enter()
+            .append("rect")
+            .attr("x", width-113)
+            .attr("y", function(d, i){ return i*20+200;})
+            .attr("width", 10)
+            .attr("height", 10)
+            .style("fill", function(d) { 
+                return z(d.id);
+              })
+          // give text for each legend
+          legend.selectAll('text')
+            .data(cities)
+            .enter()
+            .append("text")
+            .attr("x", width-100)
+            .attr("y", function(d, i){ return i *  20 + 9+200;})
+            .text(function(d) {return d.id;});
+        });
+        function type(d, _, columns) {
+          d.date = parseTime(d.date);
+          for (var i = 1, n = columns.length, c; i < n; ++i) d[c = columns[i]] = +d[c];
+          return d;
+        }
+      </script>
+      </div>
+    </div>
+  </body>
+</html>
