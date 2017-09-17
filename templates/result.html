@@ -1,0 +1,21 @@
+<!doctype html>
+<html>
+	<head>
+		<meta charset="utf-8">
+		<title>Clustering result</title>
+		<link rel="stylesheet" type="text/css" href="{{ url_for('static',filename='styles.css')}}">
+	</head>
+  <body>
+		<h1>Clustering Result</h1>
+		<p>There are {{ node_num }} nodes that are clustered into {{c_cnt}} cluters.</p>
+		<p>The number of nodes for each cluster:</p>
+  	<p>{{c_node_num}}</p>
+  	<p>The location for each cluster center:</p>
+  	{% for centers_element in centers %}
+      <p>{{ centers_element }} </p>
+  	{% endfor %}
+  	<form method="GET" action="/index">
+  		<p><button type="submit">Back</button></p>
+		</form>
+  </body>
+</html>
